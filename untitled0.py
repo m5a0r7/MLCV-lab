@@ -1,111 +1,55 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Feb 24 12:04:41 2018
+Created on Mon Apr 16 13:39:57 2018
 
 @author: MOHAMMAD AMIN
 """
 
-
-num = int(input("Please enter a number for reconstruct picture"))
-
-import scipy.io
+import cv2
 
 import numpy as np
 
-from numpy import linalg as LA
-
-import pylab as plt
-
-import sklearn.preprocessing 
-
-mat = scipy.io.loadmat('D:/University/Semester8/CV lab/week2/Yale.mat')
+from matplotlib import pyplot as plt
 
 
 
+image = cv2.imread('D:/University/Semester8/CV lab/week5/aaa.jpg')
 
-mat = mat["people_illum_img"]
-mat = mat.reshape(90, 192, 168)
+gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-mat = mat.reshape(90 , 192*168)
+cv2.imwrite('D:/University/Semester8/CV lab/week5/gray.jpg', gray_image)
 
-mat = np.transpose(mat)
+kernel = cv2.getGaussianKernel(9, 1)
 
+twoD = cv2.sepFilter2D(gray_image, -1, kernel, kernel)
 
-k = mat.mean(1)
+cv2.imshow("Gaussian Blur", twoD)
 
-k = k.reshape(32256 ,1)
+cv2.waitKey(0)
 
-k1 = np.repeat(k,90,axis=1)
-
-
-
-mat_n = mat - k1
-
-kernel = np.matmul(np.transpose(mat_n) , mat_n)
-
-w , v = LA.eig(kernel)
+laplacian = cv2.Laplacian(gray_image,cv2.CV_64F)
 
 
-
-sorted_indexes = w.argsort()
-sorted_indexes = sorted_indexes[::-1]
-w = w[sorted_indexes]
+sobelx = cv2.Sobel(gray_image,-1,1,0)
 
 
-v = mat_n @ v[:, sorted_indexes]
+sobely = cv2.Sobel(gray_image,-1,0,1)
 
+plt.subplot(2,2,1),plt.imshow(gray_image,cmap = 'gray')
 
+plt.title('Original'), plt.xticks([]), plt.yticks([])
 
+plt.subplot(2,2,2),plt.imshow(laplacian,cmap = 'gray')
 
+plt.title('Laplacian'), plt.xticks([]), plt.yticks([])
 
+plt.subplot(2,2,3),plt.imshow(sobelx,cmap = 'gray')
 
+plt.title('Sobel X'), plt.xticks([]), plt.yticks([])
 
+plt.subplot(2,2,4),plt.imshow(sobely,cmap = 'gray')
 
-y = sum(w)
+plt.title('Sobel Y'), plt.xticks([]), plt.yticks([])
 
-f = 0
-
-for i in range(90):
-    t = w[0:i]
-    
-    x = sum(t)
-    
-    if (x/y) > 0.99:
-        f = i
-        break
-    
-    
-    
-    
-
-n = 15
-
-
-v = v[:, :n]
-
-norms = np.linalg.norm(v, axis=0)
-
-for i in range(n):
-    
-    v[:, i] = v[:, i] / norms[i]
-
-face = np.matmul(np.transpose(v) , mat_n)
-    
-#face = sklearn.preprocessing.normalize(face, norm='l2', axis=1, copy=True, return_norm=False)
-        
-  
-    
-w_r = face[:, num].transpose() @ v.transpose()    
-    
-
-
-
-plt.figure()
-
-im = plt.imshow(w_r.reshape(192 , 168) , cmap = 'gray')
-
-plt.figure()
-
-im = plt.imshow(mat[: , num].reshape(192 , 168) , cmap = 'gray')
-
+plt.show()
 
